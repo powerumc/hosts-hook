@@ -1,0 +1,7 @@
+[target.'cfg(all())']
+
+rustflags = [
+    "-W", "clippy::all",
+    "-W", "clippy::pedantic",
+    "-A", "clippy::must_use_candidate",
+]

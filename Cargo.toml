@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "hosts-hook-cli",
+    "hosts-hook-rs"
+]

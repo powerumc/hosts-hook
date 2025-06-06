@@ -1,0 +1,20 @@
+[package]
+name = "hosts-hook-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Junil Um <powerumc@gmail.com>"]
+description = "A developer tool that overrides DNS resolution per directory without modifying the system hosts file."
+categories = ["command-line-utilities", "development-tools", "network-programming"]
+repository = "https://github.com/powerumc/hosts-hook"
+homepage = "https://github.com/powerumc/hosts-hook"
+readme = "../README.md"
+license = "MIT"
+
+[lib]
+name = "hostshook"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+libc = "0.2"
+log = "0.4"
+simple_logger = { version = "5", features = ["colors"] }
