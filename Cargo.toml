@@ -3,3 +3,4 @@ members = [
     "hosts-hook-cli",
     "hosts-hook-rs"
 ]
+resolver = "3"

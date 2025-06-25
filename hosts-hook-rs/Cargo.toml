@@ -1,6 +1,7 @@
 [package]
 name = "hosts-hook-rs"
 version = "0.1.0"
+rust-version = "1.86"
 edition = "2021"
 authors = ["Junil Um <powerumc@gmail.com>"]
 description = "A developer tool that overrides DNS resolution per directory without modifying the system hosts file."
