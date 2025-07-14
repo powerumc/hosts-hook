@@ -2,7 +2,7 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 use clap::{Args, Parser, Subcommand};
-use hostshook::BUILD_LIB_NAME;
+use hostshook::{get_os, OsType, BUILD_LIB_NAME};
 
 fn main() {
     let cli = Cli::parse();
@@ -49,15 +49,19 @@ fn print_command() {
 }
 
 pub fn export_cmd(path: &str) -> String {
-    #[cfg(target_os = "macos")]
-    {
-        format!("# To use hostshook, run the following command
-# Or `source <(cargo run)`
+    let comment = "# To use hostshook, run the following command
+# `source <(hostshook)`
+# Or";
+
+    match get_os() {
+        OsType::MacOS => {
+            format!("{comment}
 export DYLD_INSERT_LIBRARIES={path}/target/debug/{BUILD_LIB_NAME}")
-    }
-    
-    #[cfg(target_os = "linux")]
-    {
-        format!("export LD_PRELOAD={path}/target/debug/{BUILD_LIB_NAME}")
+        }
+        OsType::Linux => {
+            format!("{comment}
+export LD_PRELOAD={path}/target/debug/{BUILD_LIB_NAME}")
+        }
+        OsType::Windows => panic!("Windows is not supported yet"),
     }
 }

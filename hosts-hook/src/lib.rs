@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::ptr;
+use std::{env, ptr};
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
@@ -19,6 +19,23 @@ pub static BUILD_LIB_NAME: &str = concat!("lib", env!("CARGO_CRATE_NAME"), ".dyl
 pub static BUILD_LIB_NAME: &'static str = concat!("lib", env!("CARGO_CRATE_NAME"), ".so");
 
 pub static LOGGER_INIT: Once = Once::new();
+
+#[derive(Debug, Clone, Copy)]
+pub enum OsType {
+    MacOS,
+    Linux,
+    Windows
+}
+
+/// <https://doc.rust-lang.org/std/env/consts/constant.OS.html>
+pub fn get_os() -> OsType {
+    match env::consts::OS {
+        "macos" => OsType::MacOS,
+        "linux" | "freebsd" => OsType::Linux,
+        "windows" => OsType::Windows,
+        _ => panic!("Unsupported OS")
+    }
+}
 
 struct HostsUpwardFinder<'a> {
     path: Option<&'a Path>,
