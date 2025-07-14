@@ -12,7 +12,7 @@ readme = "../README.md"
 license = "MIT"
 
 [dependencies]
-hosts-hook-rs = { path = "../hosts-hook-rs" }
+hosts-hook = { path = "../hosts-hook" }
 anyhow = "1.0"
 clap = { version = "4", features = ["derive"] }
 

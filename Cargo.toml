@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "hosts-hook-cli",
-    "hosts-hook-rs"
+    "hosts-hook"
 ]
 resolver = "3"
