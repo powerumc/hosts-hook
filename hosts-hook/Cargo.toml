@@ -11,11 +11,19 @@ homepage = "https://github.com/powerumc/hosts-hook"
 readme = "../README.md"
 license = "MIT"
 
+[features]
+default = ["debug"]
+debug = ["debug_log"]
+release = ["release_log"]
+
+debug_log = ["log/max_level_trace"]
+release_log = ["log/release_max_level_info"]
+
 [lib]
 name = "hostshook"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 libc = "0.2"
-log = "0.4"
+log = { version =  "0.4", default-features = false, optional = true }
 simple_logger = { version = "5", features = ["colors"] }

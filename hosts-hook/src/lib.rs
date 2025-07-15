@@ -4,7 +4,7 @@ use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::net::IpAddr;
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 use std::sync::Once;
 use libc::{addrinfo, c_char, c_int, hostent, in6_addr, in_addr, sa_family_t, sockaddr, sockaddr_in, sockaddr_in6, AF_INET, AF_INET6, SOCK_STREAM};
 use log::debug;
@@ -35,6 +35,36 @@ pub fn get_os() -> OsType {
         "windows" => OsType::Windows,
         _ => panic!("Unsupported OS")
     }
+}
+
+/// Normalizes a path without existing symlinks.
+/// 
+/// <https://github.com/rust-lang/cargo/blob/fede83ccf973457de319ba6fa0e36ead454d2e20/src/cargo/util/paths.rs#L61C1-L86C2>
+pub fn normalize_path(path: &Path) -> PathBuf {
+    let mut components = path.components().peekable();
+    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
+        components.next();
+        PathBuf::from(c.as_os_str())
+    } else {
+        PathBuf::new()
+    };
+
+    for component in components {
+        match component {
+            Component::Prefix(..) => unreachable!(),
+            Component::RootDir => {
+                ret.push(component.as_os_str());
+            }
+            Component::CurDir => {}
+            Component::ParentDir => {
+                ret.pop();
+            }
+            Component::Normal(c) => {
+                ret.push(c);
+            }
+        }
+    }
+    ret
 }
 
 struct HostsUpwardFinder<'a> {

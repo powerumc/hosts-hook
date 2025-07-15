@@ -1,8 +1,8 @@
-use std::env;
-use std::fs::File;
-use std::io::Write;
 use clap::{Args, Parser, Subcommand};
 use hostshook::{get_os, OsType, BUILD_LIB_NAME};
+use std::fs::File;
+use std::io::Write;
+use std::env;
 
 fn main() {
     let cli = Cli::parse();
@@ -42,25 +42,42 @@ impl InitOpts {
 }
 
 fn print_command() {
-    let curr_dir = env!("PWD");
-    let cmd = export_cmd(curr_dir);
+    let cmd = export_cmd();
     
     println!("{cmd}");
 }
 
-pub fn export_cmd(path: &str) -> String {
+pub fn export_cmd() -> String {
     let comment = "# To use hostshook, run the following command
-# `source <(hostshook)`
+# source <(hostshook)
 # Or";
+
+    #[cfg(debug_assertions)]
+    let path = {
+        let pwd = env::current_dir().unwrap();
+        format!("{}/target/debug/{BUILD_LIB_NAME}", pwd.display())
+    };
+
+    #[cfg(not(debug_assertions))]
+    let path = {
+        let mut pwd = env::current_exe().unwrap();
+        pwd.pop();
+        pwd.pop();
+        pwd.push("lib");
+        pwd.push(BUILD_LIB_NAME);
+        let pwd = hostshook::normalize_path(&pwd);
+
+        format!("{}", pwd.display())
+    };
 
     match get_os() {
         OsType::MacOS => {
             format!("{comment}
-export DYLD_INSERT_LIBRARIES={path}/target/debug/{BUILD_LIB_NAME}")
+export DYLD_INSERT_LIBRARIES={path}")
         }
         OsType::Linux => {
             format!("{comment}
-export LD_PRELOAD={path}/target/debug/{BUILD_LIB_NAME}")
+export LD_PRELOAD={path}")
         }
         OsType::Windows => panic!("Windows is not supported yet"),
     }
