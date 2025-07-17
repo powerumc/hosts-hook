@@ -17,6 +17,12 @@
 
 ## 📥 설치
 
+먼저 시스템에 [Rust](https://www.rust-lang.org/tools/install)가 설치되어 있어야 합니다.
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
 ### 🛠️ 수동 빌드 (현재 사용 가능한 방법)
 
 저장소를 클론하고 Cargo를 사용하여 프로젝트를 빌드합니다:

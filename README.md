@@ -17,6 +17,12 @@
 
 ## 📥 Installation
 
+First, ensure you have [Rust](https://www.rust-lang.org/tools/install) installed on your system.
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
 ### 🛠️ Manual Build (Current Method)
 
 Clone the repository and build the project using Cargo:
