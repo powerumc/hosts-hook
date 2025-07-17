@@ -1,14 +1,14 @@
 # 🔄 hosts-hook [[Korean](./docs/README.ko.md)]
 
-**hosts-hook** is a **tool** that allows you to override DNS resolution without modifying your system's hosts file. This tool is particularly useful in *development* and *testing environments*.
+**hosts-hook** is a tool that allows you to override DNS resolution for specific hostnames without modifying your system's `hosts` file. This is particularly useful in development and testing environments where you need to redirect traffic to local or different servers.
 
 ## ✨ Features
 
-- **Hooks** into the system's DNS resolution functions to intercept DNS lookups.
-- Searches for custom hosts files (`.hosts` or `hosts`) in the current directory or parent directories.
-- Returns the **specified IP address** instead of performing an actual DNS lookup when a matching hostname is found in the custom hosts file.
-- Supports both **IPv4** and **IPv6** addresses.
-- Can use different hosts files based on environment variables (`HOSTS_ENV`), enabling various configurations (e.g., *development*, *production*).
+- **Dynamic DNS Overriding**: Intercepts system DNS lookups and provides custom responses.
+- **Flexible Configuration**: Searches for custom hosts files (`.hosts` or `hosts`) in the current directory and parent directories.
+- **Environment-Specific Hosts**: Use different hosts files for different environments (e.g., development, staging) using the `HOSTS_ENV` variable.
+- **IPv4 & IPv6 Support**: Works with both IPv4 and IPv6 addresses.
+- **Easy to Use**: Simple commands to initialize configuration and activate the hook.
 
 ## 💻 Supported Platforms
 
@@ -17,134 +17,125 @@
 
 ## 📥 Installation
 
-### macOS
+### 🛠️ Manual Build (Current Method)
 
-Installation via **Homebrew** will be supported soon:
-
-```bash
-brew tap powerumc/tap
-brew install hostshook
-```
-
-### 🛠️ Manual Build
-
-You can also clone the repository and build it yourself:
+Clone the repository and build the project using Cargo:
 
 ```bash
 # Clone the repository
 git clone https://github.com/powerumc/hosts-hook.git
 cd hosts-hook
 
-# Build
+# Build the project
 cargo build
+```
+
+### macOS (Homebrew)
+
+```bash
+brew tap powerumc/tap
+
+brew install hostshook
 ```
 
 ## 📚 Usage
 
-### 🖥️ Using the CLI Tool
+`hosts-hook` has two main parts: the CLI tool for managing hosts files and the hooking mechanism to activate DNS overriding.
 
-You can manage hosts files using the `hostshook` binary installed via Homebrew:
+### 1. Initialize Your Hosts File
+
+Use the `hostshook init` command to create a `.hosts` file in your current directory. This file will contain your custom DNS rules.
 
 ```bash
-# Initialize .hosts file
+# Create a default .hosts file
 hostshook init
 
-# Initialize .hosts file with a specific name
+# Create a named hosts file for a specific environment
 hostshook init --file .hosts.development
 ```
 
-### 📚 Loading the Library
+### 2. Activate the DNS Hook
+
+To activate the DNS overriding, you need to load the `hosts-hook` dynamic library into your shell session. The `hostshook` command helps you do this easily.
 
 ```bash
-hostshook
-# export DYLD_INSERT_LIBRARIES=/opt/homebrew/lib/libhostshook.dylib
-# Or
+# This command prints the necessary export statement
+# The `source` command then executes it in the current shell
 source <(hostshook)
+
+# Or
+
+hostshook
+# It will output something like:
+# export DYLD_INSERT_LIBRARIES=/path/to/your/libhostshook.dylib
 ```
+Once activated, any new processes launched from this shell will have their DNS lookups intercepted by `hosts-hook`.
 
-### ⚙️ Setting Environment Variables
+### 3. Set Environment for Different Hosts Files
 
-To use different hosts files for different environments:
+You can switch between different hosts configurations by setting the `HOSTS_ENV` environment variable.
 
 ```bash
-# Set environment variable
+# Set the environment to 'development'
 export HOSTS_ENV=development
 
-# Now it will use .hosts.development or hosts.development file
+# Now, hosts-hook will look for .hosts.development or hosts.development
 ```
 
-## 🗂️ Hosts File Names
+## ⚙️ How It Works
 
-Custom hosts files are searched in the following order:
-1. `hosts.<environment>` (using the `HOSTS_ENV` environment variable, e.g., `HOSTS_ENV=development`)
-2. `.hosts.<environment>` (using the `HOSTS_ENV` environment variable, e.g., `HOSTS_ENV=development`)
-3. `hosts`
-4. `.hosts`
+**hosts-hook** works by intercepting system calls related to DNS resolution (like `getaddrinfo`). When an application tries to resolve a domain name, the hook checks for a matching entry in your custom `.hosts` file.
 
-The search for hosts files in the current and parent directories follows this order:
+If a match is found, the hook returns the IP address you specified, bypassing the standard DNS resolution process. If no match is found, the request is passed on to the system's default DNS resolver.
 
-1. Look for hosts files in the current directory.
-2. If not found, search for hosts files up to the root directory.
-3. If no custom hosts files are found, the system's default hosts information is used.
+The search for the hosts file starts in the current directory and moves up to the root directory.
+
+## 🗂️ Hosts File Search Order
+
+`hosts-hook` searches for hosts files in the following order of priority:
+
+1.  `hosts.<environment>` (e.g., `hosts.development` if `HOSTS_ENV=development`)
+2.  `.hosts.<environment>` (e.g., `.hosts.development`)
+3.  `hosts`
+4.  `.hosts`
+
+The search happens first in the current directory, then recursively up to the root directory until a file is found.
 
 ## 📄 Hosts File Format
 
-The hosts file follows the **standard hosts file format**:
+The file uses the standard hosts format. Lines starting with `#` are comments.
 
 ```
-# Comment
+# This is a comment
 127.0.0.1 example.com
-127.0.0.2 example2.com
+::1       ipv6.example.com
 ```
 
 ## 🧪 Examples
 
-You can find **C language** and **Node.js** examples in the `examples` directory of the repository.
+You can find **C** and **Node.js** examples in the `examples` directory of the repository.
 
-### 🔍 Running the C Language Example
-
-```bash
-cd examples/clang
-./test.sh
-```
-
-You might see output similar to this:
-```text
-# Before hostshook is loaded
-## Testing gethostbyname...
-gethostbyname resolved: example.com -> 96.7.128.198
-
-# Hostshook is loaded
-## Testing getaddrinfo...
-2025-06-11T13:25:32.299Z DEBUG [hostshook] Not found: /..../hosts-hook/examples/clang/hosts
-2025-06-11T13:25:32.299Z DEBUG [hostshook] Found: /..../hosts-hook/examples/clang/.hosts
-2025-06-11T13:25:32.299Z DEBUG [hostshook] Found IpAddr: 127.0.0.1
-2025-06-11T13:25:32.299Z DEBUG [hostshook] Hooked getaddrinfo for: example.com -> 127.0.0.1
-getaddrinfo resolved addresses:
-  IPv4: 127.0.0.1
-```
-
-### 🔍 Running the Node.js Example
+### Running the Node.js Example
 
 ```bash
 cd examples/nodejs
 ./test.sh
 ```
 
-## ⚙️ How It Works
-
-**hosts-hook** **hooks** into system DNS resolution functions like `gethostbyname`, `gethostbyname2`, and `getaddrinfo` to intercept DNS lookups.
-When a hostname is found in the custom hosts file, it returns the **specified IP address** instead of performing an actual DNS lookup.
-The hosts file is searched from the current directory up to the root directory until it is found.
-
 ## ⚠️ Limitations
 
-### 🍎 macOS SIP (System Integrity Protection) Limitation
+### macOS SIP (System Integrity Protection)
 
-On macOS, there are some limitations due to the System Integrity Protection (SIP) security feature. System commands (`ping`, `curl`, etc.) are protected by SIP and are not affected by hosts-hook's DNS hooking.
+On macOS, System Integrity Protection (SIP) prevents system-level commands and applications (like `ping`, `curl`, `ssh`) from being hooked. This is a security feature of the OS to protect core system components.
 
-This is by design in macOS's security architecture, as SIP prevents certain system processes and commands from being modified or hooked to protect system integrity. Therefore, these commands will always use the system's default DNS resolution path.
-Regular applications work normally with hosts-hook, but please keep this limitation in mind when using system commands.
+Therefore, these protected commands will ignore `hosts-hook` and use the standard system DNS resolver.
+
+However, **most third-party applications are not affected by SIP**. This includes:
+- Development tools (Node.js, Python, Java applications)
+- Database clients
+- And many more.
+
+These applications will correctly use the DNS overrides provided by `hosts-hook`.
 
 ## 📜 License
 
