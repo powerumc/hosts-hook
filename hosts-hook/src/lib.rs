@@ -104,7 +104,7 @@ impl<'a> HostsUpwardFinder<'a> {
                 let reader = BufReader::new(file);
 
                 if let Some(ipaddr) = find(reader, hostname) {
-                    debug!("Found IpAddr: {ipaddr}");
+                    debug!("Found IpAddr: {hostname} {ipaddr}");
                     return Some(ipaddr)
                 }
             }
@@ -155,12 +155,11 @@ where R: Read
             continue;
         };
 
-        if let Some(host) = hosts.split_whitespace().next() {
+        let mut inline_hosts = hosts.split_whitespace();
+        while let Some(host) = inline_hosts.next() {
             if host == hostname {
                 return Some(ip_addr);
             }
-
-            return Some(ip_addr);
         }
     }
 
