@@ -4,25 +4,26 @@
 
 ## ✨ Features
 
-- 🔍 **Hooks** into the system's DNS resolution functions to intercept DNS lookups.
-- 📁 Searches for custom hosts files (`.hosts` or `hosts`) in the current directory or parent directories.
-- 🔄 Returns the **specified IP address** instead of performing an actual DNS lookup when a matching hostname is found in the custom hosts file.
-- 🌐 Supports both **IPv4** and **IPv6** addresses.
-- 🔧 Can use different hosts files based on environment variables (`HOSTS_ENV`), enabling various configurations (e.g., *development*, *production*).
+- **Hooks** into the system's DNS resolution functions to intercept DNS lookups.
+- Searches for custom hosts files (`.hosts` or `hosts`) in the current directory or parent directories.
+- Returns the **specified IP address** instead of performing an actual DNS lookup when a matching hostname is found in the custom hosts file.
+- Supports both **IPv4** and **IPv6** addresses.
+- Can use different hosts files based on environment variables (`HOSTS_ENV`), enabling various configurations (e.g., *development*, *production*).
 
 ## 💻 Supported Platforms
 
-- 🍎 **macOS**
-- 🐧 **Linux**
+- **macOS**
+- **Linux**
 
 ## 📥 Installation
 
-### 🍎 macOS
+### macOS
 
 Installation via **Homebrew** will be supported soon:
 
 ```bash
-# TODO: Coming soon
+brew tap powerumc/tap
+brew install hostshook
 ```
 
 ### 🛠️ Manual Build
@@ -55,6 +56,9 @@ hostshook init --file .hosts.development
 ### 📚 Loading the Library
 
 ```bash
+hostshook
+# export DYLD_INSERT_LIBRARIES=/opt/homebrew/lib/libhostshook.dylib
+# Or
 source <(hostshook)
 ```
 
@@ -74,8 +78,8 @@ export HOSTS_ENV=development
 Custom hosts files are searched in the following order:
 1. `hosts.<environment>` (using the `HOSTS_ENV` environment variable, e.g., `HOSTS_ENV=development`)
 2. `.hosts.<environment>` (using the `HOSTS_ENV` environment variable, e.g., `HOSTS_ENV=development`)
-3. `.hosts`
-4. `hosts`
+3. `hosts`
+4. `.hosts`
 
 The search for hosts files in the current and parent directories follows this order:
 

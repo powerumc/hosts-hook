@@ -4,25 +4,26 @@
 
 ## ✨ 기능
 
-- 🔍 시스템의 DNS 확인 함수를 **후킹**하여 DNS 조회를 가로챕니다.
-- 📁 현재 디렉토리 또는 상위 디렉토리에서 사용자 정의 hosts 파일(`.hosts` 또는 `hosts`)을 검색합니다.
-- 🔄 사용자 정의 hosts 파일에서 일치하는 호스트 이름이 발견되면 실제 DNS 조회 대신 **지정된 IP 주소**를 반환합니다.
-- 🌐 **IPv4** 및 **IPv6** 주소를 모두 지원합니다.
-- 🔧 환경 변수(`HOSTS_ENV`)를 기반으로 다른 hosts 파일을 사용할 수 있어 다양한 구성(예: *개발*, *프로덕션*)이 가능합니다.
+- 시스템의 DNS 확인 함수를 **후킹**하여 DNS 조회를 가로챕니다.
+- 현재 디렉토리 또는 상위 디렉토리에서 사용자 정의 hosts 파일(`.hosts` 또는 `hosts`)을 검색합니다.
+- 사용자 정의 hosts 파일에서 일치하는 호스트 이름이 발견되면 실제 DNS 조회 대신 **지정된 IP 주소**를 반환합니다.
+- **IPv4** 및 **IPv6** 주소를 모두 지원합니다.
+- 환경 변수(`HOSTS_ENV`)를 기반으로 다른 hosts 파일을 사용할 수 있어 다양한 구성(예: *개발*, *프로덕션*)이 가능합니다.
 
 ## 💻 지원 플랫폼
 
-- 🍎 **macOS**
-- 🐧 **Linux**
+- **macOS**
+- **Linux**
 
 ## 📥 설치
 
-### 🍎 macOS
+### macOS
 
 macOS에서는 곧 **Homebrew**를 통한 설치를 지원할 예정입니다:
 
 ```bash
-# TODO: 곧 지원 예정
+brew tap powerumc/tap
+brew install hostshook
 ```
 
 ### 🛠️ 수동 빌드
@@ -55,6 +56,9 @@ hostshook init --file .hosts.development
 ### 📚 라이브러리 로드하기
 
 ```bash
+hostshook
+# export DYLD_INSERT_LIBRARIES=/opt/homebrew/lib/libhostshook.dylib
+# Or
 source <(hostshook)
 ```
 
@@ -74,8 +78,8 @@ export HOSTS_ENV=development
 사용자 정의 Hosts 파일은 다음 순서로 검색합니다:
 1. `hosts.<environment>` (`HOSTS_ENV` 환경 변수 사용, 예: `HOSTS_ENV=development`)
 2. `.hosts.<environment>` (`HOSTS_ENV` 환경 변수 사용, 예: `HOSTS_ENV=development`)
-3. `.hosts`
-4. `hosts`
+3. `hosts`
+4. `.hosts`
 
 현재 디렉토리와 상위 디렉토리에서 다음 순서로 hosts 파일을 검색합니다:
 

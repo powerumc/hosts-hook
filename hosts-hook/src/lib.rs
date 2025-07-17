@@ -27,6 +27,7 @@ pub enum OsType {
     Windows
 }
 
+/// Returns the current operating system type.
 /// <https://doc.rust-lang.org/std/env/consts/constant.OS.html>
 pub fn get_os() -> OsType {
     match env::consts::OS {
@@ -38,11 +39,10 @@ pub fn get_os() -> OsType {
 }
 
 /// Normalizes a path without existing symlinks.
-/// 
 /// <https://github.com/rust-lang/cargo/blob/fede83ccf973457de319ba6fa0e36ead454d2e20/src/cargo/util/paths.rs#L61C1-L86C2>
 pub fn normalize_path(path: &Path) -> PathBuf {
     let mut components = path.components().peekable();
-    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
+    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().copied() {
         components.next();
         PathBuf::from(c.as_os_str())
     } else {
@@ -130,7 +130,7 @@ impl<'a> Iterator for HostsUpwardFinder<'a> {
 fn find_by_hostname(hostname: &str, env: Option<&str>) -> Option<IpAddr> {
     LOGGER_INIT.call_once(|| SimpleLogger::new().init().unwrap());
 
-    let curr_dir = std::env::current_dir().unwrap_or_default();
+    let curr_dir = env::current_dir().unwrap_or_default();
     let mut finder = HostsUpwardFinder::new(&curr_dir);
     finder.find(hostname, env)
 }
@@ -168,7 +168,7 @@ where R: Read
 }
 
 unsafe fn hook_gethostbyname(name: *const c_char) -> Option<*mut hostent> {
-    let env = std::env::var("HOSTS_ENV").ok();
+    let env = env::var("HOSTS_ENV").ok();
     let hostname = CStr::from_ptr(name).to_string_lossy();
 
     if let Some(ipaddr) = find_by_hostname(&hostname, env.as_deref()) {
@@ -181,7 +181,7 @@ unsafe fn hook_gethostbyname(name: *const c_char) -> Option<*mut hostent> {
 }
 
 unsafe fn hook_gethostbyname2(name: *const c_char, af: c_int) -> Option<*mut hostent> {
-    let env = std::env::var("HOSTS_ENV").ok();
+    let env = env::var("HOSTS_ENV").ok();
     let hostname = CStr::from_ptr(name).to_string_lossy();
 
     if let Some(ipaddr) = find_by_hostname(&hostname, env.as_deref()) {
@@ -203,7 +203,7 @@ unsafe fn hook_getaddrinfo(
         return None;
     }
 
-    let env = std::env::var("HOSTS_ENV").ok();
+    let env = env::var("HOSTS_ENV").ok();
     let hostname = CStr::from_ptr(node).to_string_lossy();
 
     let Some(ipaddr) = find_by_hostname(&hostname, env.as_deref()) else {
