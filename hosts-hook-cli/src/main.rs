@@ -4,12 +4,12 @@ use std::fs::File;
 use std::io::Write;
 use std::env;
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Commands::Init(opts)) => opts.execute().unwrap(),
-        None => print_command()
+        Some(Commands::Init(opts)) => Ok(opts.execute()?),
+        None => Ok(print_command())
     }
 }
 
