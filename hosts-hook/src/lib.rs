@@ -1,10 +1,10 @@
 use std::borrow::Cow;
-use std::ptr;
+use std::{env, ptr};
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
 use std::net::IpAddr;
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 use std::sync::Once;
 use libc::{addrinfo, c_char, c_int, hostent, in6_addr, in_addr, sa_family_t, sockaddr, sockaddr_in, sockaddr_in6, AF_INET, AF_INET6, SOCK_STREAM};
 use log::debug;
@@ -19,6 +19,53 @@ pub static BUILD_LIB_NAME: &str = concat!("lib", env!("CARGO_CRATE_NAME"), ".dyl
 pub static BUILD_LIB_NAME: &'static str = concat!("lib", env!("CARGO_CRATE_NAME"), ".so");
 
 pub static LOGGER_INIT: Once = Once::new();
+
+#[derive(Debug, Clone, Copy)]
+pub enum OsType {
+    MacOS,
+    Linux,
+    Windows
+}
+
+/// Returns the current operating system type.
+/// <https://doc.rust-lang.org/std/env/consts/constant.OS.html>
+pub fn get_os() -> OsType {
+    match env::consts::OS {
+        "macos" => OsType::MacOS,
+        "linux" | "freebsd" => OsType::Linux,
+        "windows" => OsType::Windows,
+        _ => panic!("Unsupported OS")
+    }
+}
+
+/// Normalizes a path without existing symlinks.
+/// <https://github.com/rust-lang/cargo/blob/fede83ccf973457de319ba6fa0e36ead454d2e20/src/cargo/util/paths.rs#L61C1-L86C2>
+pub fn normalize_path(path: &Path) -> PathBuf {
+    let mut components = path.components().peekable();
+    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().copied() {
+        components.next();
+        PathBuf::from(c.as_os_str())
+    } else {
+        PathBuf::new()
+    };
+
+    for component in components {
+        match component {
+            Component::Prefix(..) => unreachable!(),
+            Component::RootDir => {
+                ret.push(component.as_os_str());
+            }
+            Component::CurDir => {}
+            Component::ParentDir => {
+                ret.pop();
+            }
+            Component::Normal(c) => {
+                ret.push(c);
+            }
+        }
+    }
+    ret
+}
 
 struct HostsUpwardFinder<'a> {
     path: Option<&'a Path>,
@@ -83,7 +130,7 @@ impl<'a> Iterator for HostsUpwardFinder<'a> {
 fn find_by_hostname(hostname: &str, env: Option<&str>) -> Option<IpAddr> {
     LOGGER_INIT.call_once(|| SimpleLogger::new().init().unwrap());
 
-    let curr_dir = std::env::current_dir().unwrap_or_default();
+    let curr_dir = env::current_dir().unwrap_or_default();
     let mut finder = HostsUpwardFinder::new(&curr_dir);
     finder.find(hostname, env)
 }
@@ -121,7 +168,7 @@ where R: Read
 }
 
 unsafe fn hook_gethostbyname(name: *const c_char) -> Option<*mut hostent> {
-    let env = std::env::var("HOSTS_ENV").ok();
+    let env = env::var("HOSTS_ENV").ok();
     let hostname = CStr::from_ptr(name).to_string_lossy();
 
     if let Some(ipaddr) = find_by_hostname(&hostname, env.as_deref()) {
@@ -134,7 +181,7 @@ unsafe fn hook_gethostbyname(name: *const c_char) -> Option<*mut hostent> {
 }
 
 unsafe fn hook_gethostbyname2(name: *const c_char, af: c_int) -> Option<*mut hostent> {
-    let env = std::env::var("HOSTS_ENV").ok();
+    let env = env::var("HOSTS_ENV").ok();
     let hostname = CStr::from_ptr(name).to_string_lossy();
 
     if let Some(ipaddr) = find_by_hostname(&hostname, env.as_deref()) {
@@ -156,7 +203,7 @@ unsafe fn hook_getaddrinfo(
         return None;
     }
 
-    let env = std::env::var("HOSTS_ENV").ok();
+    let env = env::var("HOSTS_ENV").ok();
     let hostname = CStr::from_ptr(node).to_string_lossy();
 
     let Some(ipaddr) = find_by_hostname(&hostname, env.as_deref()) else {

@@ -1,7 +1,7 @@
 [package]
 name = "hosts-hook-cli"
 version = "0.1.0"
-rust-version = "1.86.0"
+rust-version = "1.86"
 edition = "2021"
 authors = ["Junil Um <powerumc@gmail.com>"]
 description = "A developer tool that overrides DNS resolution per directory without modifying the system hosts file."
@@ -12,7 +12,7 @@ readme = "../README.md"
 license = "MIT"
 
 [dependencies]
-hosts-hook-rs = { path = "../hosts-hook-rs" }
+hosts-hook = { path = "../hosts-hook" }
 anyhow = "1.0"
 clap = { version = "4", features = ["derive"] }
 
