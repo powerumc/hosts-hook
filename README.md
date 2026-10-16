@@ -39,9 +39,7 @@ cargo build
 ### macOS (Homebrew)
 
 ```bash
-brew tap powerumc/hostshook
-
-brew install hostshook
+brew install powerumc/tap/hostshook
 ```
 
 ## 📚 Usage
