@@ -62,13 +62,3 @@ jobs:
 
       - name: Test Install
         run: cargo install --path "./hosts-hook-cli" --force --locked
-
-      - name: Update Homebrew formula
-        uses: mislav/bump-homebrew-formula-action@v3
-        if: contains(github.ref, 'refs/tags/')
-        with:
-          formula-name: hostshook
-          homebrew-tap: powerumc/homebrew-tap
-          download-url: https://github.com/powerumc/hosts-hook/archive/${{ github.ref_name }}.tar.gz
-        env:
-          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
