@@ -92,9 +92,14 @@ jobs:
             ./release/*.tar.gz
             ./release/*.zip
 
+  homebrew:
+    # The formula builds from the source tarball, so it does not wait for the
+    # release matrix; it runs once per tag, and skips prerelease tags.
+    if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Update Homebrew formula
-        uses: mislav/bump-homebrew-formula-action@v3
-        if: contains(github.ref, 'refs/tags/')
+        uses: mislav/bump-homebrew-formula-action@v4
         with:
           formula-name: hostshook
           homebrew-tap: powerumc/homebrew-tap
